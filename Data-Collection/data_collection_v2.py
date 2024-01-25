@@ -48,15 +48,18 @@ def package_data():
         last_soil_moisture_reading = sensor_manager.last_soil_moisture_reading
         
         # Individual Soil Moisture Readings + watering
-        soil_moisture_percent_1, was_watered, ml = sensor_manager.get_soil_reading(plant_1_id)
-        soil_moisture_percent_2 = sensor_manager.get_soil_reading(plant_2_id)
+        sensors = sensor_manager.get_soil_readings()
+        soil_moisture_percent_1, was_watered_1, ml_1 = sensors[0]
+        soil_moisture_percent_2, was_watered_2, ml_2 = sensors[1]
+
         printlog("\nPackaging Data...")
         
         # Return Data
         values_1 = [plant_order, plant_family, plant_subfamily, plant_genus, reading_day, reading_time, 
-                soil_moisture_percent_1, lux, temperature, humidity, was_watered, ml, enivronment, plant_1_id]
+                soil_moisture_percent_1, lux, temperature, humidity, was_watered_1, ml_1, enivronment, plant_1_id]
         values_2 = [plant_order, plant_family, plant_subfamily, plant_genus, reading_day, reading_time, 
-                soil_moisture_percent_2, lux, temperature, humidity, was_watered, ml, enivronment, plant_2_id]
+                soil_moisture_percent_2, lux, temperature, humidity, was_watered_2, ml_2, enivronment, plant_2_id]
+        
         printlog("Packing OK!")
         return dict(zip(headers, values_1)), dict(zip(headers, values_2))
 
@@ -93,10 +96,9 @@ def sleep_until_next_interval(interval_minutes):
 
 if __name__ == "__main__":
     # get last water levels
-    last_level = float(input("Last water moisture level (plant 1) ? "))
-    sensor_manager.last_soil_moisture_1_reading = last_level
-    last_level = float(input("Last water moisture level (plant 2) ? "))
-    sensor_manager.last_soil_moisture_2_reading = last_level
+    for x in range(2):
+        last_level = float(input(f"Last water moisture level (plant {x+1}) ? "))
+        sensor_manager.soil_sensors[x] = last_level
 
     # start program
     while True:

@@ -9,28 +9,22 @@ import busio
 from utils import printlog
 
 
-class SensorManager:
-    def __init__(self):
-        # Initialize sensors and other properties
-        self.dht = adafruit_dht.DHT11(12)
-        self.i2c = busio.I2C(board.SCL, board.SDA)
-        self.ads = ADS.ADS1115(self.i2c)
-        self.soil_moisture_1_chan = AnalogIn(self.ads, ADS.P0)
-        # self.soil_moisture_2_chan = AnalogIn(self.ads, ADS.P0)
-        self.light_sensor = adafruit_bh1750.BH1750(self.i2c)
-        self.last_soil_moisture_1_reading = 0.0
-        self.last_soil_moisture_2_reading = 0.0
+class SoilMoistureSensor:
+    def __init__(self, ads, channel, plant_id, filename):
+        self.soil_moisture_chan = AnalogIn(ads, channel)
+        self.plant_id = plant_id
+        self.last_soil_moisture_reading = 0.0
+        self.calibration_data = filename
         self.MAX_RETRY = 3
         self.RETRY_WAIT = 3
 
+    def get_soil_reading(self):
 
-    def get_soil_reading(self, plant_id):
-        
-        printlog("\nReading Soil...")
         for _ in range(self.MAX_RETRY):
             try:
-                # set calibrated values
-                with open('calibration_data.json', 'r') as cal_file:
+        
+        # set calibrated values
+                with open(self.calibration_data, 'r') as cal_file:
                     calibration_data = json.load(cal_file)
 
                 min_soil_moisture = calibration_data["max_value"]
@@ -49,41 +43,46 @@ class SensorManager:
                 elif soil_moisture_percent <= 0:
                     soil_moisture_percent = 0
 
-                # return soil new soil moisture, was_watered and ml + update global variable 
-                if plant_id == "peace-lily-1":
-                    printlog(f"Soil plant 1 OK! {round(soil_moisture_percent, 2)}")
-                    self.last_soil_moisture_1_reading = round(soil_moisture_percent, 2)
+                # Return new soil moisture, was_watered, and ml
+                was_watered = 1 if soil_moisture_percent > self.last_soil_moisture_reading + 5 else 0
+                ml = 1000 if was_watered == 1 else 0
 
-                    # set watered
-                    was_watered = 1 if soil_moisture_percent > self.last_soil_moisture_1_reading + 5 else 0
-
-                    # set ml
-                    ml = 1000 if was_watered == 1 else 0
-                    
-                    # return plant 1 data
-                    return self.last_soil_moisture_1_reading, was_watered, ml
-                
-                elif plant_id == "peace-lily-2":
-                    printlog(f"Soil plant 2 OK! {round(soil_moisture_percent, 2)}")
-                    self.last_soil_moisture_2_reading = round(soil_moisture_percent, 2)
-
-                    # set watered
-                    was_watered = 1 if soil_moisture_percent > self.last_soil_moisture_1_reading + 5 else 0
-
-                    # set ml
-                    ml = 1000 if was_watered == 1 else 0
-
-                    # return plant 2 data
-                    return self.last_soil_moisture_2_reading
-
+                return round(soil_moisture_percent, 2), was_watered, ml
+            
             except RuntimeError as e:
                 printlog(f"Error reading Soil sensor: {e}")
                 print("Retrying...")
                 time.sleep(self.RETRY_WAIT)
         printlog(f"!!! Impossible to retreive Soil Moisture !!!")
-        return None
+        return None, None, None
 
 
+class SensorManager:
+    def __init__(self):
+        # Initialize sensors and other properties
+        self.dht = adafruit_dht.DHT11(12)
+        self.i2c = busio.I2C(board.SCL, board.SDA)
+        self.ads = ADS.ADS1115(self.i2c)
+        self.soil_sensors = [
+            SoilMoistureSensor(self.ads, ADS.P0, "peace-lily-1", 'calibration_data_1.json'),
+            SoilMoistureSensor(self.ads, ADS.P1, "peace-lily-2", 'calibration_data_2.json')
+        ]
+        self.light_sensor = adafruit_bh1750.BH1750(self.i2c)
+        self.MAX_RETRY = 3
+        self.RETRY_WAIT = 3
+
+
+    def get_soil_readings(self):
+        soil_data = []
+        
+        printlog("\nReading Soils...")
+        for soil_sensor in self.soil_sensors:
+            # read both sensors and return array [[s1_soil%, s1_watered, s1_ml], [s2_soil%, s2_watered, s2_ml]]
+            soil_data.append(soil_sensor.get_soil_reading()) 
+        
+        return soil_data
+
+    
     def get_light_reading(self):
 
         printlog("\nReading Light...")
