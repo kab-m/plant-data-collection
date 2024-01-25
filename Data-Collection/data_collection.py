@@ -13,7 +13,8 @@ import sensors
 from utils import printlog
 
 # Global variables
-csv_filename = "plant_data.csv"
+csv_filename_1 = "plant_data_1.csv"
+csv_filename_2 = "plant_data_2.csv"
 headers = ["plant_order", "plant_family", "plant_subfamily", "plant_genus", "day", "time",
            "soil_moisture_percent", "lux", "temperature", "humidity", "was_watered", "ml", "environment", "plant_id"] 
 sensor_manager = sensors.SensorManager()
@@ -54,12 +55,12 @@ def package_data():
 
         printlog("\nPackaging Data...")
         
-        # Return Data
+        # Set Data
         values_1 = [plant_order, plant_family, plant_subfamily, plant_genus, reading_day, reading_time, 
                 soil_moisture_percent_1, lux, temperature, humidity, was_watered_1, ml_1, enivronment, plant_1_id]
         values_2 = [plant_order, plant_family, plant_subfamily, plant_genus, reading_day, reading_time, 
                 soil_moisture_percent_2, lux, temperature, humidity, was_watered_2, ml_2, enivronment, plant_2_id]
-        
+        # Return Data
         printlog("Packing OK!")
         return dict(zip(headers, values_1)), dict(zip(headers, values_2))
 
@@ -68,18 +69,19 @@ def package_data():
         return None, None
 
 
-def log_data(data):
+def log_data(data, filename):
     printlog(f"\nLogging Data...")
     try:
         global headers
-        # open csv
-        with open(csv_filename, 'a', newline='') as file:
+        # Open csv
+        with open(filename, 'a', newline='') as file:
             writer = csv.DictWriter(file, fieldnames=headers)
             # If file empty add headers
             if file.tell() == 0:
                 writer.writeheader()
+            # Write file
             writer.writerow(data)
-        printlog("Logging OK!")
+        printlog(f"Logging {filename} OK!")
     except Exception as e:
         printlog(f"Error logging data: {e}")
 
@@ -95,25 +97,25 @@ def sleep_until_next_interval(interval_minutes):
 
 
 if __name__ == "__main__":
-    # get last water levels
+    # Get last water levels
     for x in range(2):
         last_level = float(input(f"Last water moisture level (plant {x+1}) ? "))
         sensor_manager.soil_sensors[x] = last_level
 
-    # start program
+    # Start program
     while True:
-        #get time and date
+        #Get time and date
         now = datetime.datetime.now()
         day_now = now.strftime("%d/%m/%Y")
         time_now = now.strftime("%H:%M:%S")
         printlog(f"\n########## Date: {day_now} Time: {time_now}")
         try:
-            #pack and log data to csv
+            # Pack and log data to csv
             data_1, data_2 = package_data()
             if data_1 and data_2 is not None:
-                log_data(data_1)
-                log_data(data_2)
-            # set and sleep to next interval
+                log_data(data_1, csv_filename_1)
+                log_data(data_2, csv_filename_2)
+            # Set and sleep to next interval
             sleep_until_next_interval(30)
         except KeyboardInterrupt:
             break
