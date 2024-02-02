@@ -46,7 +46,6 @@ def package_data():
         # Common Sensor Readings
         lux = sensor_manager.get_light_reading()
         humidity, temperature = sensor_manager.get_air_reading()
-        last_soil_moisture_reading = sensor_manager.last_soil_moisture_reading
         
         # Individual Soil Moisture Readings + watering
         sensors = sensor_manager.get_soil_readings()
@@ -96,11 +95,14 @@ def sleep_until_next_interval(interval_minutes):
     time.sleep(seconds_to_next_interval)
 
 
+def testHardware():
+    sensor_manager.test()
+
 if __name__ == "__main__":
     # Get last water levels
-    for x in range(2):
-        last_level = float(input(f"Last water moisture level (plant {x+1}) ? "))
-        sensor_manager.soil_sensors[x] = last_level
+    # for x in range(2):
+    #     last_level = float(input(f"Last water moisture level (plant {x+1}) ? "))
+    #     sensor_manager.soil_sensors[x] = last_level
 
     # Start program
     while True:
@@ -119,3 +121,10 @@ if __name__ == "__main__":
             sleep_until_next_interval(30)
         except KeyboardInterrupt:
             break
+
+        # try:
+        #     testHardware()
+        #     print("\nTEST PASSED\n")
+        # except KeyboardInterrupt:
+        #     print("quitting")
+    
