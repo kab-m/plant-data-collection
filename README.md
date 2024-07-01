@@ -11,19 +11,19 @@ v3 - More reliable data collection from 2 plant per bot, better code structure, 
 
 Tested on Raspberry Pi 2 and 4.
 
-Instructions for v1 and v2:
+## Instructions for v1 and v2:
 - Set up 'venv' on raspberry pi using the provided "requirementspi2.txt" or "requirementspi4.txt".
 - Replace "plant_data.csv" file with an empty file with the same name.
 - Run the "calibration.py" script for the soil moisture sensor, following the on screen instructions.
 - Run the "data-collection.py" file to start the bot.
 - "Ctrl+C" to terminate the program.
 
-v2 Updates:
+## v2 Updates:
 - Added second plant.
 - Improved code structure.
 - Improved and extended data structure.
 
-v3 Updates:
+## v3 Updates:
 - Better code structure.
 - More robust electrical engineering.
 - More reliable data collection.
