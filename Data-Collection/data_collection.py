@@ -9,15 +9,15 @@ Author: Tommaso Bacci
 import time
 import csv
 import datetime
-import sensors
-from utils import printlog
+import sensor_manager
+import logging
 
 # Global variables
 csv_filename_1 = "plant_data_1.csv"
 csv_filename_2 = "plant_data_2.csv"
 headers = ["plant_order", "plant_family", "plant_subfamily", "plant_genus", "day", "time",
            "soil_moisture_percent", "lux", "temperature", "humidity", "was_watered", "ml", "environment", "plant_id"] 
-sensor_manager = sensors.SensorManager()
+sensor_manager = sensor_manager.SensorManager()
 
 # Constants
 MAX_RETRY = 3
